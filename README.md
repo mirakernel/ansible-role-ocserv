@@ -1,38 +1,69 @@
-Role Name
-=========
+# Ansible Role: ocserv_oidc
 
-A brief description of the role goes here.
+Эта роль позволяет развернуть и настроить OpenConnect Server (ocserv) на Debian VDS с поддержкой OpenID Connect (OIDC) для аутентификации, а также с возможностью объявления видимых маршрутов для VPN-пользователей.
 
-Requirements
-------------
+## Особенности
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+- **Аутентификация через OIDC**: Интеграция с провайдерами, поддерживающими OpenID Connect (например, Google, Keycloak и др.).
+- **VPN-конфигурация**: Настройка подсети для VPN-клиентов, указание маски сети и портов (TCP/UDP).
+- **Объявление маршрутов**: Возможность анонсировать подсети (visible routes), чтобы VPN-пользователи могли видеть и получать доступ к внутренним ресурсам.
+- **NAT и IP-пересылка**: Автоматическая настройка iptables для маскарадинга VPN-подсети и включение IP-пересылки на сервере.
 
-Role Variables
---------------
+## Переменные
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+Все параметры, необходимые для настройки, определяются в файле `defaults/main.yml`:
 
-Dependencies
-------------
+- **OIDC настройки:**
+  - `ocserv_oidc_url`: URL для получения конфигурации OIDC (например, `https://your-idp.com/.well-known/openid-configuration`).
+  - `ocserv_oidc_client_id`: Идентификатор клиента для OIDC.
+  - `ocserv_oidc_client_secret`: Секрет клиента для OIDC.
+  - `ocserv_oidc_redirect_uri`: URI перенаправления для OIDC (например, `https://your-vpn-server.com/redirect`).
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+- **Настройки VPN:**
+  - `ocserv_vpn_subnet`: Подсеть для VPN-клиентов (например, `192.168.100.0/24`).
+  - `ocserv_ipv4_netmask`: Маска подсети (например, `255.255.255.0`).
+  - `ocserv_network_interface`: Сетевой интерфейс для NAT (например, `eth0`).
 
-Example Playbook
-----------------
+- **Объявляемые маршруты:**
+  - `ocserv_visible_routes`: Список подсетей, которые будут анонсированы клиентам (например, `["192.168.1.0/24"]`).
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+## Использование роли
 
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
+1. **Создайте playbook**
 
-License
--------
+   Пример файла `vpn_setup.yml`:
 
-BSD
+   ```yaml
+   - hosts: vpn_servers
+     become: yes
+     roles:
+       - ocserv_oidc
+   ```
 
-Author Information
-------------------
+2. **Запустите playbook**
 
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+   Выполните команду:
+
+   ```bash
+   ansible-playbook vpn_setup.yml
+   ```
+
+## Настройка ocserv
+
+Конфигурация ocserv разворачивается с использованием шаблона `templates/ocserv.conf.j2`, который включает:
+
+- Настройки OIDC (параметры аутентификации через OpenID Connect).
+- Основные сетевые параметры (подсеть VPN, маска, TCP/UDP порты).
+- Директивы `route` для видимых подсетей, определённых в переменной `ocserv_visible_routes`.
+
+## Требования
+
+- Debian или производные (например, Ubuntu).
+- Ansible версии 2.9 или выше.
+- Доступ с правами root или возможность использовать sudo.
+
+## Примечания
+
+- Проверьте, что значение переменной `ocserv_network_interface` соответствует интерфейсу, через который сервер подключен к локальной сети.
+- При необходимости внесите дополнительные изменения в шаблон `ocserv.conf.j2` или добавьте новые задачи для расширенной настройки.
+- Рекомендуется протестировать настройки в тестовом окружении перед развертыванием в продакшене.
