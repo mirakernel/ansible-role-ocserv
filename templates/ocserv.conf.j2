@@ -1,0 +1,24 @@
+# Основные настройки ocserv
+
+# Аутентификация через OIDC
+oidc_url = {{ ocserv_oidc_url }}
+oidc_client_id = {{ ocserv_oidc_client_id }}
+oidc_client_secret = {{ ocserv_oidc_client_secret }}
+oidc_redirect_uri = {{ ocserv_oidc_redirect_uri }}
+
+# Сетевые настройки VPN
+ipv4-network = {{ ocserv_vpn_subnet }}
+ipv4-netmask = {{ ocserv_ipv4_netmask }}
+
+# TCP и UDP порты
+tcp-port = 443
+udp-port = 443
+
+# Дополнительные настройки
+max-clients = 128
+max-same-clients = 4
+keepalive = 32400
+
+{% for route in ocserv_visible_routes %}
+route = {{ route }}
+{% endfor %}

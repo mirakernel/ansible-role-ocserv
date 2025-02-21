@@ -1,3 +1,18 @@
-#SPDX-License-Identifier: MIT-0
 ---
-# defaults file for ocserv
+# OIDC настройки
+ocserv_oidc_url: "https://your-idp.com/.well-known/openid-configuration"
+ocserv_oidc_client_id: "your_client_id"
+ocserv_oidc_client_secret: "your_client_secret"
+ocserv_oidc_redirect_uri: "https://your-vpn-server.com/redirect"
+
+# VPN сеть
+ocserv_vpn_subnet: "192.168.100.0/24"  # Сеть для VPN-клиентов
+ocserv_ipv4_netmask: "255.255.255.0"
+
+# Системный интерфейс для NAT (локальная сеть)
+ocserv_network_interface: "eth0"
+
+# Подсети, которые будут видны пользователям (анонсируются в VPN конфигурации)
+# Можно задать несколько подсетей, которые будут добавлены в конфигурационный файл ocserv через директиву "route"
+ocserv_visible_routes:
+  - "192.168.1.0/24"   # Пример локальной сети, которую будут видеть пользователи

@@ -1,3 +1,38 @@
-#SPDX-License-Identifier: MIT-0
 ---
-# tasks file for ocserv
+- name: Обновить apt-кэш
+  apt:
+    update_cache: yes
+  become: yes
+
+- name: Установить пакет ocserv
+  apt:
+    name: ocserv
+    state: present
+  become: yes
+
+- name: Развернуть конфигурацию ocserv
+  template:
+    src: ocserv.conf.j2
+    dest: /etc/ocserv/ocserv.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Перезапуск ocserv
+  become: yes
+
+- name: Включить IP-пересылку
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: "1"
+    state: present
+    reload: yes
+  become: yes
+
+- name: Настроить правило NAT для VPN-сети
+  iptables:
+    table: nat
+    chain: POSTROUTING
+    source: "{{ ocserv_vpn_subnet }}"
+    out_interface: "{{ ocserv_network_interface }}"
+    jump: MASQUERADE
+  become: yes
