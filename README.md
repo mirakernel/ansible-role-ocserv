@@ -1,6 +1,6 @@
-# Ansible Role: ocserv_oidc
+# Openconnect Server ansible role
 
-Эта роль позволяет развернуть и настроить OpenConnect Server (ocserv) на Debian VDS с поддержкой OpenID Connect (OIDC) для аутентификации, а также с возможностью объявления видимых маршрутов для VPN-пользователей.
+Эта роль позволяет развернуть и настроить OpenConnect Server (ocserv) на Debian с поддержкой OpenID Connect (OIDC) для аутентификации, а также с возможностью объявления видимых маршрутов для VPN-пользователей.
 
 ## Особенности
 
@@ -37,7 +37,7 @@
    - hosts: vpn_servers
      become: yes
      roles:
-       - ocserv_oidc
+       - ocserv
    ```
 
 2. **Запустите playbook**
