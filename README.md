@@ -78,3 +78,4 @@ sudo openconnect --protocol=anyconnect --user=<USER> --passwd-on-stdin <IP_OR_DO
 - Тестирование и дебаг OIDC конфигурации
 - Добавление новых вариантов авторизации
 - сделать как можно больше параметров настраиваемыми
+- CA
