@@ -5,7 +5,9 @@ ipv4-netmask = {{ ocserv_ipv4_netmask }}
 # Настройка SSL
 server-cert = /etc/ocserv/ssl/server-cert.pem
 server-key = /etc/ocserv/ssl/server-key.pem
+
 socket-file = /var/run/ocserv.sock
+device = vpns
 
 {% if ocserv_enable_oidc %}
 # Настройка OIDC аутентификации
