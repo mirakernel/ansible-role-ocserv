@@ -24,7 +24,7 @@
   become: yes
 
 - name: Сохранить iptables правила
-  command: iptables-save > /etc/iptables.rules
+  shell: iptables-save > /etc/iptables.rules
   become: yes
 
 - name: Обеспечить загрузку iptables правил при старте
