@@ -24,7 +24,15 @@
   become: yes
 
 - name: Сохранить iptables правила
-  shell: iptables-save > /etc/iptables.rules
+  command: iptables-save
+  register: iptables_rules
+  become: yes
+
+- name: Записать правила в файл
+  copy:
+    content: "{{ iptables_rules.stdout }}"
+    dest: "/etc/iptables.rules"
+    mode: '0644'
   become: yes
 
 - name: Обеспечить загрузку iptables правил при старте
