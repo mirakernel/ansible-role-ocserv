@@ -68,19 +68,8 @@
   notify: Перезапуск ocserv
 
 - name: Настроить локальных пользователей (если OIDC отключен)
-  block:
-    - name: Создать файл пользователей /etc/ocserv/passwd
-      file:
-        path: /etc/ocserv/passwd
-        state: touch
-        mode: '0600'
-
-    - name: Добавить локальных пользователей в /etc/ocserv/passwd
-      lineinfile:
-        path: "/etc/ocserv/passwd"
-        line: "{{ item.key }}:{{ item.value }}"
-        create: yes
-      with_dict: "{{ ocserv_local_users }}"
+  shell: "echo {{ item.value }} | sudo ocpasswd -c /etc/ocserv/passwd {{ item.key }}"
+  with_dict: "{{ ocserv_local_users }}"
   when: not ocserv_enable_oidc
 
 - name: Создать каталог конфигурации ocserv
