@@ -1,6 +1,15 @@
 ---
-# OIDC настройки
+# Включить или отключить OIDC
+ocserv_enable_oidc: true
+
+# Локальные пользователи (если OIDC отключен)
+ocserv_local_users:
+  admin: "adminpassword"
+  user1: "userpassword"
+
+# Конфигурация OIDC (если включено)
 ocserv_oidc_url: "https://your-idp.com/.well-known/openid-configuration"
+ocserv_oidc_issuer: "https://idp.example.com/"
 ocserv_oidc_client_id: "your_client_id"
 ocserv_oidc_client_secret: "your_client_secret"
 ocserv_oidc_redirect_uri: "https://your-vpn-server.com/redirect"
@@ -16,3 +25,19 @@ ocserv_network_interface: "eth0"
 # Можно задать несколько подсетей, которые будут добавлены в конфигурационный файл ocserv через директиву "route"
 ocserv_visible_routes:
   - "192.168.1.0/24"   # Пример локальной сети, которую будут видеть пользователи
+
+# Группы пользователей и доступные подсети
+ocserv_groups:
+  admin:
+    routes:
+      - "192.168.1.0/24"   # Доступ к корпоративной сети
+      - "172.16.0.0/16"    # Доступ к другой внутренней сети
+    dns: "1.1.1.1"
+    session_timeout: "0"    # Без ограничения по времени
+    max_clients: "5"        # Разрешить 5 подключений на пользователя
+  users:
+    routes:
+      - "10.20.20.0/24"     # Обычные пользователи видят только VPN-подсеть
+    dns: "8.8.8.8"
+    session_timeout: "3600" # Ограничение сессии 1 час
+    max_clients: "2"        # Разрешить 2 устройства на пользователя

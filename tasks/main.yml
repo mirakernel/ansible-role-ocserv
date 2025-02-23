@@ -1,24 +1,10 @@
 ---
-- name: Обновить apt-кэш
+- name: Установить необходимые пакеты
   apt:
-    update_cache: yes
-  become: yes
-
-- name: Установить пакет ocserv
-  apt:
-    name: ocserv
+    name:
+      - ocserv
     state: present
-  become: yes
-
-- name: Развернуть конфигурацию ocserv
-  template:
-    src: ocserv.conf.j2
-    dest: /etc/ocserv/ocserv.conf
-    owner: root
-    group: root
-    mode: '0644'
-  notify: Перезапуск ocserv
-  become: yes
+    update_cache: yes
 
 - name: Включить IP-пересылку
   sysctl:
@@ -36,3 +22,79 @@
     out_interface: "{{ ocserv_network_interface }}"
     jump: MASQUERADE
   become: yes
+
+- name: Сохранить iptables правила
+  command: iptables-save > /etc/iptables.rules
+  become: yes
+
+- name: Обеспечить загрузку iptables правил при старте
+  copy:
+    dest: /etc/network/if-pre-up.d/iptables_restore
+    content: |
+      #!/bin/sh
+      /sbin/iptables-restore < /etc/iptables.rules
+    mode: '0755'
+  become: yes
+
+- name: Создать каталог конфигурации ocserv
+  file:
+    path: "/etc/ocserv/config-per-group"
+    state: directory
+    mode: '0755'
+
+- name: Скопировать основной конфиг ocserv
+  template:
+    src: "ocserv.conf.j2"
+    dest: "/etc/ocserv/ocserv.conf"
+    mode: '0644'
+  notify: Перезапуск ocserv
+
+- name: Настроить OIDC аутентификацию (если включена)
+  block:
+    - name: Установить параметры OIDC в ocserv.conf
+      lineinfile:
+        path: "/etc/ocserv/ocserv.conf"
+        line: "{{ item }}"
+        create: yes
+      loop:
+        - "auth = oidc"
+        - "oidc-issuer = {{ ocserv_oidc_issuer }}"
+        - "oidc-client-id = {{ ocserv_oidc_client_id }}"
+        - "oidc-client-secret = {{ ocserv_oidc_client_secret }}"
+  when: ocserv_enable_oidc
+
+- name: Настроить локальных пользователей (если OIDC отключен)
+  block:
+    - name: Отключить OIDC и включить локальных пользователей
+      lineinfile:
+        path: "/etc/ocserv/ocserv.conf"
+        line: "auth = plain"
+        create: yes
+
+    - name: Создать файл пользователей /etc/ocserv/passwd
+      copy:
+        content: ""
+        dest: "/etc/ocserv/passwd"
+        mode: '0600'
+
+    - name: Добавить локальных пользователей в /etc/ocserv/passwd
+      lineinfile:
+        path: "/etc/ocserv/passwd"
+        line: "{{ item.key }}:{{ item.value }}"
+        create: yes
+      with_dict: "{{ ocserv_local_users }}"
+  when: not ocserv_enable_oidc
+
+- name: Создать конфигурационные файлы для групп
+  template:
+    src: "group_config.j2"
+    dest: "/etc/ocserv/config-per-group/{{ item.key }}"
+    mode: '0644'
+  with_dict: "{{ ocserv_groups }}"
+  notify: Перезапуск ocserv
+
+- name: Перезапустить ocserv
+  systemd:
+    name: ocserv
+    state: restarted
+    daemon_reload: yes

@@ -1,0 +1,8 @@
+{% for route in item.value.routes %}
+route = {{ route }}
+{% endfor %}
+
+dns = {{ item.value.dns }}
+session-timeout = {{ item.value.session_timeout }}
+max-same-clients = {{ item.value.max_clients }}
+cisco-client-compat = true

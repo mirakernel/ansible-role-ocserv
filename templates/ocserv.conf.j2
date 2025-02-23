@@ -1,10 +1,14 @@
 # Основные настройки ocserv
+auth = {% if ocserv_enable_oidc %}oidc{% else %}plain{% endif %}
 
 # Аутентификация через OIDC
-oidc_url = {{ ocserv_oidc_url }}
-oidc_client_id = {{ ocserv_oidc_client_id }}
-oidc_client_secret = {{ ocserv_oidc_client_secret }}
+{% if ocserv_enable_oidc %}
 oidc_redirect_uri = {{ ocserv_oidc_redirect_uri }}
+oidc-issuer = {{ ocserv_oidc_issuer }}
+oidc-url = {{ ocserv_oidc_url }}
+oidc-client-id = {{ ocserv_oidc_client_id }}
+oidc-client-secret = {{ ocserv_oidc_client_secret }}
+{% endif %}
 
 # Сетевые настройки VPN
 ipv4-network = {{ ocserv_vpn_subnet }}
