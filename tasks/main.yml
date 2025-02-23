@@ -44,11 +44,21 @@
     mode: '0755'
   become: yes
 
-- name: Создать каталог конфигурации ocserv
+- name: Создать каталог для SSL сертификатов
   file:
-    path: "/etc/ocserv/config-per-group"
+    path: /etc/ocserv/ssl
     state: directory
     mode: '0755'
+  become: yes
+
+- name: Сгенерировать самоподписанный SSL сертификат (если не существует)
+  command: >
+    openssl req -new -x509 -nodes -days 3650
+    -subj "/CN={{ ansible_fqdn }}" -newkey rsa:2048
+    -keyout /etc/ocserv/ssl/server-key.pem -out /etc/ocserv/ssl/server-cert.pem
+  args:
+    creates: /etc/ocserv/ssl/server-cert.pem
+  become: yes
 
 - name: Скопировать основной конфиг ocserv
   template:
@@ -57,32 +67,12 @@
     mode: '0644'
   notify: Перезапуск ocserv
 
-- name: Настроить OIDC аутентификацию (если включена)
-  block:
-    - name: Установить параметры OIDC в ocserv.conf
-      lineinfile:
-        path: "/etc/ocserv/ocserv.conf"
-        line: "{{ item }}"
-        create: yes
-      loop:
-        - "auth = oidc"
-        - "oidc-issuer = {{ ocserv_oidc_issuer }}"
-        - "oidc-client-id = {{ ocserv_oidc_client_id }}"
-        - "oidc-client-secret = {{ ocserv_oidc_client_secret }}"
-  when: ocserv_enable_oidc
-
 - name: Настроить локальных пользователей (если OIDC отключен)
   block:
-    - name: Отключить OIDC и включить локальных пользователей
-      lineinfile:
-        path: "/etc/ocserv/ocserv.conf"
-        line: "auth = plain"
-        create: yes
-
     - name: Создать файл пользователей /etc/ocserv/passwd
-      copy:
-        content: ""
-        dest: "/etc/ocserv/passwd"
+      file:
+        path: /etc/ocserv/passwd
+        state: touch
         mode: '0600'
 
     - name: Добавить локальных пользователей в /etc/ocserv/passwd
@@ -92,6 +82,12 @@
         create: yes
       with_dict: "{{ ocserv_local_users }}"
   when: not ocserv_enable_oidc
+
+- name: Создать каталог конфигурации ocserv
+  file:
+    path: "/etc/ocserv/config-per-group"
+    state: directory
+    mode: '0755'
 
 - name: Создать конфигурационные файлы для групп
   template:

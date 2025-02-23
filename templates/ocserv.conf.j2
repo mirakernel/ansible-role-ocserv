@@ -1,28 +1,26 @@
 # Основные настройки ocserv
-auth = {% if ocserv_enable_oidc %}oidc{% else %}plain{% endif %}
-
-# Аутентификация через OIDC
-{% if ocserv_enable_oidc %}
-oidc_redirect_uri = {{ ocserv_oidc_redirect_uri }}
-oidc-issuer = {{ ocserv_oidc_issuer }}
-oidc-url = {{ ocserv_oidc_url }}
-oidc-client-id = {{ ocserv_oidc_client_id }}
-oidc-client-secret = {{ ocserv_oidc_client_secret }}
-{% endif %}
-
-# Сетевые настройки VPN
 ipv4-network = {{ ocserv_vpn_subnet }}
 ipv4-netmask = {{ ocserv_ipv4_netmask }}
 
-# TCP и UDP порты
+# Настройка SSL
+server-cert = /etc/ocserv/ssl/server-cert.pem
+server-key = /etc/ocserv/ssl/server-key.pem
+socket-file = /var/run/ocserv.sock
+
+{% if ocserv_enable_oidc %}
+# Настройка OIDC аутентификации
+auth = oidc
+oidc-issuer = {{ ocserv_oidc_issuer }}
+oidc-client-id = {{ ocserv_oidc_client_id }}
+oidc-client-secret = {{ ocserv_oidc_client_secret }}
+{% else %}
+# Настройка локальной аутентификации (plain)
+auth = plain[passwd=/etc/ocserv/passwd]
+{% endif %}
+
+# Дополнительные настройки (порты, keepalive и т.д.)
 tcp-port = 443
 udp-port = 443
-
-# Дополнительные настройки
-max-clients = 128
-max-same-clients = 4
 keepalive = 32400
-
-{% for route in ocserv_visible_routes %}
-route = {{ route }}
-{% endfor %}
+max-clients = 128
+max-same-clients = 6

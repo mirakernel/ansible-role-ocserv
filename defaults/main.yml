@@ -8,7 +8,6 @@ ocserv_local_users:
   user1: "userpassword"
 
 # Конфигурация OIDC (если включено)
-ocserv_oidc_url: "https://your-idp.com/.well-known/openid-configuration"
 ocserv_oidc_issuer: "https://idp.example.com/"
 ocserv_oidc_client_id: "your_client_id"
 ocserv_oidc_client_secret: "your_client_secret"
